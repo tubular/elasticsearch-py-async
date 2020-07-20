@@ -1,6 +1,13 @@
 Python Elasticsearch Async Client
 =================================
 
+**NOTE: This repository is deprecated, do not use for Elasticsearch 7.x or later.**
+
+`See this issue about the deprecation for more information <https://github.com/elastic/elasticsearch-py-async/issues/81>`_.
+
+What is this library?
+---------------------
+
 This is an adapter for `elasticsearch-py`_ providing a transport layer based on
 Python's `asyncio`_ module. All API calls now return a future wrapping the
 response.
