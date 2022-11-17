@@ -2,13 +2,13 @@ import asyncio
 import json
 import logging
 
-from pytest import yield_fixture, fixture
+from pytest import fixture
 
 import aiohttp.web
 from elasticsearch_async import AIOHttpConnection, AsyncElasticsearch
 
 
-@yield_fixture
+@fixture
 def connection(event_loop, server, port):
     connection = AIOHttpConnection(port=port, loop=event_loop)
     yield connection
@@ -25,12 +25,11 @@ class DummyElasticsearch(aiohttp.web.Server):
     def register_response(self, path, response={}, status=200):
         self._responses[path] = status, response
 
-    @asyncio.coroutine
-    def handler(self, request):
+    async def handler(self, request):
         url = request.url
 
         params = dict(request.query)
-        body = yield from request.read()
+        body = await request.read()
         body = json.loads(body.decode('utf-8')) if body else ''
 
         self.calls.append((request.method, url.path, body, params))
@@ -38,7 +37,7 @@ class DummyElasticsearch(aiohttp.web.Server):
         if url.path in self._responses:
             status, body = self._responses.pop(url.path)
             if asyncio.iscoroutine(body):
-                body = yield from body
+                body = await body
         else:
             status = 200
             body = {
@@ -60,15 +59,15 @@ def port():
     i += 1
     return 8080 + i
 
-@yield_fixture
-def server(event_loop, port):
+@fixture
+async def server(event_loop, port):
     server = DummyElasticsearch(debug=True, loop=event_loop)
     f = event_loop.create_server(server, '127.0.0.1', port)
     event_loop.run_until_complete(f)
     yield server
     event_loop.run_until_complete(server.shutdown(timeout=.5))
 
-@yield_fixture
+@fixture
 def client(event_loop, server, port):
     logger = logging.getLogger('elasticsearch')
     logger.setLevel(logging.DEBUG)
